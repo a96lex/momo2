@@ -9,8 +9,4 @@ energy_matrix = find_force(particles, L / 2, L)
 print("sc lattice for " + str(len(particles)) + " particles")
 print("Lennard-Jones potential energy (with perdiodic boundary conditions)")
 print("cutoff: ", L / 2, " energy: ", vector_module(energy_vector))
-print(len(energy_matrix), len(energy_vector))
 write_file(particles, "test")
-
-for i in range(len(energy_matrix)):
-    print(i, energy_matrix[i])
