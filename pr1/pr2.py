@@ -4,9 +4,11 @@ from functions.math_functions import vector_module
 from functions.system_evolution import verlet
 
 
-particles, L = sc_lattice(216, 0.8)
-energy_matrix = find_force(particles, L / 2, L)
-print(energy_matrix)
+particles, L = [[1, 0, 0], [1, 2, 0]], 0.8
+particles2 = particles.copy()
 
-particles, particles2, vel = verlet(particles, particles, 0.1, L, L / 2)
-energy = calculate_energy(particles, L / 2, L)
+print(particles)
+for i in range(480):
+    particles, particles2, vel = verlet(particles, particles2, 0.1, L, L / 2)
+
+print(particles2)
