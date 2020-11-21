@@ -56,5 +56,5 @@ def find_force(particles, cutoff, L):
                         placeholder_dist * dz,
                     ]
                     forcei = suma_vectors(forcei, forceij)
-        force_vector.append(forcei)
+            force_vector.append(forcei)
     return force_vector
