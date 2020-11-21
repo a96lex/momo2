@@ -10,3 +10,10 @@ def suma_vectors(array1, array2):
     for i in range(len(array1)):
         suma.append(array1[i] + array2[i])
     return suma
+
+
+def scalar_prod_vectors(array1, scalar):
+    suma = []
+    for i in range(len(array1)):
+        suma.append(array1[i] * scalar)
+    return suma
