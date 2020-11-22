@@ -2,10 +2,8 @@
 
 ## Molecular Dynamics Simulations
 
-### Practise 1
-
 <details>
-<summary>Show practise 1</summary>
+<summary><strong>Show practise 1</strong></summary>
 
 #### 1. Write code (preferrably a function or subroutine) to initialize the positions of particles in a sc lattice
 
@@ -200,7 +198,7 @@ for i in [1.5, 2, 2.5, 3]:
 
 **Output**
 
-```
+```raw
 sc lattice for 216 particles
 Lennard-Jones potential energy (no perdiodic boundary conditions)
 cutoff:  1.5  energy:  -497.66400000000465
