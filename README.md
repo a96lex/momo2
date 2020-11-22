@@ -91,28 +91,7 @@ I then opened the generated file (fcc_lattice216.xyz) in jmol and got a snapshot
 <details>
 <summary>Show snapshot</summary>
 
-Write to file function
-
-```python
-def write_file(particles, filetype):
-    n = len(particles)
-    f = open(filetype + str(n) + ".xyz", "w")
-    f.write(str(n) + "\n")
-    f.write(filetype + str(n) + ".xyz\n")
-    for particle in particles:
-        string = ""
-        for j in particle:
-            string += str(j) + " "
-        f.write("C " + string + "\n")
-    f.close
-```
-
-Call both functions
-
-```python
-particles, L = sc_lattice(216, 0.8)
-write_file(particles,"fcc_lattice")
-```
+![Alt text](./snapshots/fc_lattice216_front.jpg?raw=true "Title")
 
 </details>
 
