@@ -235,9 +235,34 @@ for i in [1.5, 2, 2.5, 3]:
 
 ```
 
-Distance function which accounts for periodic conditions.
+The output is:
 
-```python
+```console
+sc lattice for 216 particles
+Lennard-Jones potential energy (no perdiodic boundary conditions)
+cutoff:  1.5  energy:  -497.66400000000465
+cutoff:  2  energy:  -808.9076762688603
+cutoff:  2.5  energy:  -855.3550813248413
+cutoff:  3  energy:  -869.5351636293691
+Lennard-Jones potential energy (perdiodic boundary conditions)
+cutoff:  1.5  energy:  -597.1968000000053
+cutoff:  2  energy:  -1058.717392592579
+cutoff:  2.5  energy:  -1137.190561693361
+cutoff:  3  energy:  -1167.8195394711365
+The number of particles does not correspond to a 4*N^3 fcc lattice
+The simulation will use the closest integer value (4*4^3)
+
+fcc lattice for 256 particles
+Lennard-Jones potential energy (no perdiodic boundary conditions)
+cutoff:  1.5  energy:  -1023.5904000000145
+cutoff:  2  energy:  -1112.0640000000128
+cutoff:  2.5  energy:  -1211.893135802499
+cutoff:  3  energy:  -1231.6085030178533
+Lennard-Jones potential energy (perdiodic boundary conditions)
+cutoff:  1.5  energy:  -1336.9344000000208
+cutoff:  2  energy:  -1454.8992000000364
+cutoff:  2.5  energy:  -1629.3751045268143
+cutoff:  3  energy:  -1666.8110121889542
 
 ```
 
