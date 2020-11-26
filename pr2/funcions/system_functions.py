@@ -19,8 +19,6 @@ def distance(p1, p2, L):
 
 
 def find_force_LJ0(r, L, cutoff):
-    σ = 1
-    ε = 1
     N = len(r)
     F = np.zeros((N, 3))
     pot = 0.0
