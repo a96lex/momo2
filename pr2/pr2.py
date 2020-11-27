@@ -3,27 +3,17 @@ from funcions.write_xyz import write_file
 from funcions.system_functions import find_force_LJ0, vel_verlet, verlet, euler
 import matplotlib.pyplot as plt
 
-part1 = np.array([[1, 1.1, 0], [0, 0, 0]])
+part1 = np.array([[0, 1.1, 0], [0, 0, 0]])
 part2 = np.copy(part1)
 L = 10
 dt = 0.0003
-iteracions = 30000
+iteracions = 10000
 m = 1
 
-
-pose = []
-posv = []
-posvv = []
-pote = []
-potv = []
-potvv = []
-cine = []
-cinv = []
-cinvv = []
-enee = []
-enev = []
-enevv = []
-
+pose, posv, posvv = [], [], []
+pote, potv, potvv = [], [], []
+cine, cinv, cinvv = [], [], []
+enee, enev, enevv = [], [], []
 
 t = np.arange(0, iteracions) * dt
 vel = np.zeros(np.shape(part1))
@@ -35,7 +25,6 @@ for i in range(iteracions):
     pote.append(pot)
     cine.append(kin)
 
-
 part1 = np.array([[0, 1.1, 0], [0, 0, 0]])
 vel = np.zeros(np.shape(part1))
 for i in range(iteracions):
@@ -44,7 +33,6 @@ for i in range(iteracions):
     enevv.append(pot + kin)
     potvv.append(pot)
     cinvv.append(kin)
-
 
 part1 = np.array([[0, 1.1, 0], [0, 0, 0]])
 part2 = np.array([[0, 1.1, 0], [0, 0, 0]])
@@ -61,8 +49,8 @@ totvv = [posvv, potvv, cinvv, enevv]
 
 plot = 3  # 0 for distances, 1, 2, or 3 for potential, kinetic and total energy respectively
 
-plt.plot(t, totvv[1], label="euler")
-plt.plot(t, totvv[2], label="verlet")
-plt.plot(t, totvv[3], label="verlet vel")
+plt.plot(t, tote[plot], label="euler")
+plt.plot(t, totv[plot], label="verlet")
+plt.plot(t, totvv[plot], label="verlet vel")
 plt.legend()
 plt.show()
