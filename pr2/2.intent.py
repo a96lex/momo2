@@ -55,9 +55,14 @@ for i in range(iteracions):
     potv.append(pot)
     cinv.append(kin)
 
+tote = [pose, pote, cine, enee]
+totv = [posv, potv, cinv, enev]
+totvv = [posvv, potvv, cinvv, enevv]
 
-plt.plot(t, enee, label="euler")
-plt.plot(t, enev, label="verlet")
-plt.plot(t, enevv, label="verlet vel")
+plot = 3  # 0 for distances, 1, 2, or 3 for potential, kinetic and total energy respectively
+
+plt.plot(t, totvv[1], label="euler")
+plt.plot(t, totvv[2], label="verlet")
+plt.plot(t, totvv[3], label="verlet vel")
 plt.legend()
 plt.show()
