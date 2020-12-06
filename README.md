@@ -107,8 +107,8 @@ I then opened the generated file (fcc_lattice216.xyz) in jmol and got some snaps
 
 |                                                                                                                        |                                                                                                                             |
 | :--------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: |
-|  <img width="1604" alt="sc lattice frontal view" src="./snapshots/sc_lattice_216_front.png"> sc lattice frontal view   |  <img width="1604" alt="sc lattice freehand view" src="./snapshots/sc_lattice_216_freeview.png"> sc lattice freehand view   |
-| <img width="1604" alt="fcc lattice frontal view" src="./snapshots/fcc_lattice_256_front.png"> fcc lattice frontal view | <img width="1604" alt="fcc lattice freehand view" src="./snapshots/fcc_lattice_256_freeview.png"> fcc lattice freehand view |
+|  <img width="1604" alt="sc lattice frontal view" src="./pr1/snapshots/sc_lattice_216_front.png"> sc lattice frontal view   |  <img width="1604" alt="sc lattice freehand view" src="./pr1/snapshots/sc_lattice_216_freeview.png"> sc lattice freehand view   |
+| <img width="1604" alt="fcc lattice frontal view" src="./pr1/snapshots/fcc_lattice_256_front.png"> fcc lattice frontal view | <img width="1604" alt="fcc lattice freehand view" src="./pr1/snapshots/fcc_lattice_256_freeview.png"> fcc lattice freehand view |
 
 #### 3. Write code (preferrably a function or subroutine) to calculate the energy of a system of N identical particles interacting through a Lennard-Jones potential..
 
