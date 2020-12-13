@@ -14,7 +14,7 @@ def distance(p1, p2, L):
             dr.append(di)
     for i in range(len(p1)):
         dist += (dr[i]) ** 2
-    d = dist ** (1 / 2)
+    dist = dist ** (1 / 2)
     return dr, dist
 
 
@@ -66,7 +66,7 @@ def vel_verlet(part1, vel1, dt, L, cutoff, m):
 
 
 def verlet(part1, part2, dt, L, cutoff, m):
-    forces, pot = find_force_LJ0(part1, cutoff, L)
+    forces, pot = find_force_LJ0(part2, cutoff, L)
     part3 = 2.0 * part2 - part1 + forces * dt ** 2.0 / m
     vel = (part3 - part1) / (2.0 * dt)
     kin = kinetic_energy(vel)
