@@ -47,7 +47,7 @@ tote = [pose, pote, cine, enee]
 totv = [posv, potv, cinv, enev]
 totvv = [posvv, potvv, cinvv, enevv]
 
-plot = 3  # 0 for distances, 1, 2, or 3 for potential, kinetic and total energy respectively
+plot = 2  # 0 for distances, 1, 2, or 3 for potential, kinetic and total energy respectively
 
 plt.plot(t, tote[plot], label="euler")
 plt.plot(t, totv[plot], label="verlet")
