@@ -38,7 +38,6 @@ def find_force_LJ0(r, L, cutoff):
                 + 4.0 * (1 / d ** 12 - 1 / d ** 6)
                 - 4.0 * (1 / cutoff ** 12 - 1 / cutoff ** 6)
             )
-    print(F)
     return np.array(F), pot
 
 
