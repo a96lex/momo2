@@ -1,5 +1,5 @@
-def write_file(particles, filetype):
-    f = open(filetype, "a")
+def write_file(particles, filetype, overwritte):
+    f = open(filetype, overwritte)
     f.write(str(len(particles)) + "\n\n")
     for particle in particles:
         string = ""
