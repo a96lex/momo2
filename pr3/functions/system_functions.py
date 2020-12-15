@@ -6,7 +6,7 @@ def therm_Andersen(velocities, nu, sigma):
     c = 0
     for n in range(len(vel)):
         a = np.random.ranf()
-        if a < 0.1:
+        if a < nu:
             c += 1
             vel[n] = np.random.normal(0, sigma, 3)
     return vel, c
@@ -55,37 +55,12 @@ def kinetic_energy(vel):
     return kin
 
 
-def euler(part, vel1, dt, L, cutoff, m):
-    forces, pot = find_force_LJ0(part, cutoff, L)
-    part2 = part + vel1 * dt + 0.5 * forces * dt ** 2 / m
-    vel2 = vel1 + forces * dt / m
-    kin = kinetic_energy(vel2)
-    return part2, vel2, pot, kin
-
-
-def vel_verlet(part1, vel1, dt, L, cutoff, m, T):
-    forces, pot = find_force_LJ0(part1, L, cutoff)
-    part2 = part1 + vel1 * dt + 0.5 * forces * dt ** 2 / m
-    forces2, pot = find_force_LJ0(part2, L, cutoff)
-    vel2 = vel1 + (forces + forces2) * 0.5 * dt
-    vel2, c = therm_Andersen(vel2, 0.1, T)
-    kin = kinetic_energy(vel2)
-    return part2, vel2, pot, kin
-
-
 def time_step_vVerlet_temp(r, vel, dt, L, sigma):
     F, pot = find_force_LJ0(r, L, L / 2)
-    r = r + vel * dt + 0.5 * F * dt ** 2
+    r = r + vel * dt + 0.5 * F * dt ** 2.0
     vel = vel + F * 0.5 * dt
     F, pot = find_force_LJ0(r, L, L / 2)
     vel = vel + F * 0.5 * dt
-    vel = therm_Andersen(vel, 0.1, sigma)
-    return r, vel, F, pot
-
-
-def verlet(part1, part2, dt, L, cutoff, m):
-    forces, pot = find_force_LJ0(part2, cutoff, L)
-    part3 = 2.0 * part2 - part1 + forces * dt ** 2.0 / m
-    vel = (part3 - part1) / (2.0 * dt)
+    vel, c = therm_Andersen(vel, 0.1, sigma)
     kin = kinetic_energy(vel)
-    return part2, part3, pot, kin
+    return r, vel, kin
