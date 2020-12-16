@@ -56,5 +56,5 @@ def time_step_vVerlet_temp(r, vel, dt, L, T, N):
     vel = vel + F * 0.5 * dt
     vel = therm_Andersen(vel, 0.1, T ** 0.5)
     kin = kinetic_energy(vel)
-    T = kin * 2 / (3 * N)
+    T = kin * 2 / (3 * N - 3)
     return r, vel, T

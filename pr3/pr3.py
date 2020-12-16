@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 lattice = 3
 dt = 0.0001
 T = 1000
-n = 1
+n = 100
 
 # System generation
 particles, velocities, L = sc_lattice_velocity(lattice, 0.8442)
