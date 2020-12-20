@@ -11,7 +11,7 @@ program final
     sigma=4.1d0
     epsilon=1.837d0
     m=131.29d0
-    N=4
+    N=7
     ro=0.8*epsilon/sigma**3d0
     Ulj=0
     dt=0.00001
@@ -42,7 +42,7 @@ program final
         T = kin * 2 / (3d0 * dble(N**3d0))
     enddo
     call writeXyz(N,r,unit)
-    do i=1,10000
+    do i=1,2
         ! print*
         ! print*
         ! print*

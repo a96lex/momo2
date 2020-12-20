@@ -1,22 +1,23 @@
-program final
+program pr3
     implicit none
     double precision, dimension(:,:), allocatable :: r,f,v
-    double precision :: L, ro,Ulj,dt,T,kin,kinetic,cutoff
+    double precision :: L, ro,Ulj,dt,T,kin,kinetic,cutoff,TotalT,neq
     integer :: N,i,seed,iter,Nparts
+    logical :: eq
     
     seed = 136465
     call srand(seed)
 
     ! Parameters
     open (unit=1, file = "traj.xyz", action="write")
-    open (unit=2, file = "properties.dat", action="write")
+    open (unit=2, file = "thermodynamics.dat", action="write")
     N=4
     ro=0.8442d0
     Ulj=0d0
     dt=0.0001
     T=1000d0
     Nparts=N**3
-    cutoff=2d0
+    cutoff=L/2.d0
 
     ! initialization
     allocate(r(Nparts,3),f(Nparts,3),v(Nparts,3))
@@ -31,7 +32,7 @@ program final
     enddo
     call ljpot(r,L,Nparts,F,Ulj,cutoff)
     call writeXyz(Nparts,r)
-    iter=1000
+    iter=5000
     do i=1,iter
         print*
         print*
@@ -44,21 +45,13 @@ program final
     call writeXyz(Nparts,r)
     
     ! cooling it down
-    iter=100
-    T=0.728d0
-    do i=1,iter
-        print*
-        print*
-        print*
-        print*
-        print*,"freezing: ",i*100/iter,"%"
-        call verlet(r,L,Nparts,F,Ulj,v,dt,cutoff)
-        call thermAndersen(v,0.5d0,T,Nparts)
-    enddo
-    call writeXyz(Nparts,r)
+    call inizalize_velocities(v,Nparts,0.728d0)
 
     ! isolated system simulation
-    iter=2000
+    iter=5000
+    eq=.false.
+    TotalT=0
+    neq=0
     do i=1,iter
         print*
         print*
@@ -73,10 +66,17 @@ program final
         T = 2d0*kin/(3d0*dble(Nparts)-3d0)
         if(mod(i,1).eq.0) write(2,fmt=*)i*dt,Ulj,kin,Ulj+kin,T
         if(mod(i,50).eq.0) call writeXyz(Nparts,r)
+        if(T.ge.60) eq=.true.
+        if(eq) then
+            TotalT=TotalT+T
+            neq = neq + 1d0
+        endif
     enddo
+    TotalT=TotalT/neq
+    print*,TotalT,neq
     close(1)
     close(2)
-end program final 
+end program pr3 
 
 subroutine inizalize_velocities(v,particles,T)
     implicit none
@@ -94,7 +94,7 @@ subroutine inizalize_velocities(v,particles,T)
             v(p,c) = v(p,c) * sqrt(dble(particles)*T/(2.d0*kin)) 
         end do
     end do
-end subroutine
+  end subroutine
 
 subroutine sccLatice(r,N,ro,L)
     implicit none
@@ -120,20 +120,20 @@ subroutine verlet(r,L,Nparts,F,Ulj,v,dt,cutoff)
     ! i/o variables
     double precision :: r(Nparts,3),F(Nparts,3),L,Ulj,v(Nparts,3),dt,cutoff
     integer :: Nparts,i
-    ! r = r + v * dt + 0.5d0 * F * dt ** 2.0d0
-    ! do i=1,Nparts
-    !     call pbc(r(i,:),L)
-    ! enddo
-    ! v = v + F * 0.5d0 * dt
-    ! call ljpot(r,L,Nparts,F,Ulj,cutoff)
-    ! v = v + F * 0.5d0 * dt
-    do i=1, Nparts
-    r(i,:) = r(i,:)+v(i,:)*dt + 0.5d0*F(i,:)*dt*dt
-    call pbc(r(i,:), L)
-    v(i,:) = v(i,:)+f(i,:)*dt*0.5d0
-    call ljpot(r,L,Nparts,F,Ulj,cutoff)
-    v(i,:) = v(i,:)+f(i,:)*dt*0.5d0
+    r = r + v * dt + 0.5d0 * F * dt ** 2.0d0
+    do i=1,Nparts
+        call pbc(r(i,:),L)
     enddo
+    v = v + F * 0.5d0 * dt
+    call ljpot(r,L,Nparts,F,Ulj,cutoff)
+    v = v + F * 0.5d0 * dt
+    ! do i=1, Nparts
+    ! r(i,:) = r(i,:)+v(i,:)*dt + 0.5d0*F(i,:)*dt*dt
+    ! call pbc(r(i,:), L)
+    ! v(i,:) = v(i,:)+f(i,:)*dt*0.5d0
+    ! call ljpot(r,L,Nparts,F,Ulj,cutoff)
+    ! v(i,:) = v(i,:)+f(i,:)*dt*0.5d0
+    ! enddo
 end subroutine verlet
 
 subroutine ljpot(r,L,Nparts,F,Ulj,cutoff)
@@ -155,14 +155,14 @@ subroutine ljpot(r,L,Nparts,F,Ulj,cutoff)
                     f(i,k)=f(i,k)+(48.d0/(d**14.d0)-24d0/(d**8.d0))*dr(k)
                     f(j,k)=f(j,k)-(48.d0/(d**14.d0)-24d0/(d**8.d0))*dr(k)
                 enddo
-                Ulj = Ulj+ 4.0d0 * (1d0 / d ** 12d0 - 1d0 / d ** 6d0)+ 4.0d0 * (1d0 / cutoff ** 12d0 - 1d0 / cutoff ** 6d0)
+                Ulj = Ulj+ 4.0d0 * (1d0 / d ** 12d0 - 1d0 / d ** 6d0) - 4.0d0 * (1d0 / cutoff ** 12d0 - 1d0 / cutoff ** 6d0)
             endif
         enddo
     enddo
 end subroutine ljpot
 
 
-subroutine pbc(dr,  L)
+subroutine pbc(dr, L)
     implicit none
     double precision :: dr(3),L
     integer :: i

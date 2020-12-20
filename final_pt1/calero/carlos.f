@@ -2,7 +2,7 @@
        IMPLICIT NONE
        INTEGER NPARTS,M, I, Nsave_traj, Nsave_thermo, SEED
        INTEGER Ntimesteps1, Ntimesteps2
-       PARAMETER(NPARTS=64)
+       PARAMETER(NPARTS=27)
        REAL*8 R(1:NPARTS,1:3),V(1:NPARTS,1:3), F(1:NPARTS,1:3)
        REAL*8 L, Lcell, rho, cutoff, dt, ELJ, ULJ, Ekin, Etot, KIN, T
        REAL*8 Tinst, Tinstant
@@ -11,7 +11,6 @@
        SEED = 136465
        CALL SRAND(SEED)
 c      Parameters:
-
 
        T = 1000D0
        dt = 3d-4
@@ -54,6 +53,7 @@ c          CALL forceLJ(NPARTS,R, F, ULJ)
 c          CALL timeEuler(NPARTS,F,R,V)
         CALL forceLJ(NPARTS,R, F, ULJ)
         DO I=1, Ntimesteps1
+          print*,i,Ntimesteps1
           CALL timevV(NPARTS,F,ULJ,R,V)
           CALL ANDERSEN(NPARTS, T, V)
          if(mod(I, Nsave_traj)==0) then
@@ -70,6 +70,7 @@ c          CALL timeEuler(NPARTS,F,R,V)
        dt = 1d-3
        
        DO I=1, 1000
+        print*,i,1000
           CALL timevV(NPARTS,F,ULJ,R,V)
           CALL ANDERSEN(NPARTS, T, V)
 	ENDDO
@@ -79,6 +80,7 @@ c          CALL timeEuler(NPARTS,F,R,V)
 
 
         DO I=1, Ntimesteps2
+          print*,i,Ntimesteps2
           CALL timevV(NPARTS,F,ULJ,R,V)
 c          CALL ANDERSEN(NPARTS, T, V)
           if(mod(I, Nsave_traj)==0) then
@@ -157,6 +159,7 @@ c     simulation box
         CALL forceLJ(NPARTS,R, F, ULJ)
         V(I,:) = V(I,:)+F(I,:)*dt*0.5d0
        ENDDO
+       
        RETURN
        END SUBROUTINE timevV
 

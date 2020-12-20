@@ -1,6 +1,6 @@
 program final
     implicit none
-    double precision, dimension(:,:), allocatable :: r,f,v
+    double precision, dimension(:,:), allocatable :: r,f,v,vini
     double precision :: L, ro,Ulj,dt,T,kin,kinetic,cutoff
     integer :: N,i,seed,iter,Nparts
     
@@ -9,8 +9,9 @@ program final
 
     ! Parameters
     open (unit=1, file = "traj.xyz", action="write")
-    open (unit=2, file = "properties.dat", action="write")
-    N=4
+    open (unit=2, file = "thermodynamics.dat", action="write")
+    open (unit=3, file = "vel.dat", action="write")
+    N=5
     ro=0.8442d0
     Ulj=0d0
     dt=0.0001
@@ -19,7 +20,7 @@ program final
     cutoff=2d0
 
     ! initialization
-    allocate(r(Nparts,3),f(Nparts,3),v(Nparts,3))
+    allocate(r(Nparts,3),f(Nparts,3),v(Nparts,3),vini(Nparts,3))
     v=0d0
     f=0d0
     call sccLatice(r,N,ro,L)
@@ -31,7 +32,7 @@ program final
     enddo
     call ljpot(r,L,Nparts,F,Ulj,cutoff)
     call writeXyz(Nparts,r)
-    iter=1000
+    iter=5000
     do i=1,iter
         print*
         print*
@@ -43,21 +44,13 @@ program final
     enddo
     call writeXyz(Nparts,r)
     
-    ! cooling it down
-    iter=100
-    T=0.728d0
-    do i=1,iter
-        print*
-        print*
-        print*
-        print*
-        print*,"freezing: ",i*100/iter,"%"
-        call verlet(r,L,Nparts,F,Ulj,v,dt,cutoff)
-        call thermAndersen(v,0.5d0,T,Nparts)
-    enddo
-    call writeXyz(Nparts,r)
+        ! cooling it down
+    call inizalize_velocities(v,Nparts,0.728d0)
+    vini=v
 
     ! isolated system simulation
+    T=0.728d0
+    call inizalize_velocities(v,Nparts,T)
     iter=2000
     do i=1,iter
         print*
@@ -66,16 +59,15 @@ program final
         print*
         print*,"Isolated system: ",i*100/iter,"%"
         call verlet(r,L,Nparts,F,Ulj,v,dt,cutoff)
-            ! do j=1,Nparts
-            !     call pbc(r(j,:),  L)
-            ! enddo
         kin = kinetic(v,Nparts)
         T = 2d0*kin/(3d0*dble(Nparts)-3d0)
         if(mod(i,1).eq.0) write(2,fmt=*)i*dt,Ulj,kin,Ulj+kin,T
         if(mod(i,50).eq.0) call writeXyz(Nparts,r)
     enddo
+    call writeVel(Nparts,vini,v)
     close(1)
     close(2)
+    close(3)
 end program final 
 
 subroutine inizalize_velocities(v,particles,T)
@@ -120,20 +112,20 @@ subroutine verlet(r,L,Nparts,F,Ulj,v,dt,cutoff)
     ! i/o variables
     double precision :: r(Nparts,3),F(Nparts,3),L,Ulj,v(Nparts,3),dt,cutoff
     integer :: Nparts,i
-    ! r = r + v * dt + 0.5d0 * F * dt ** 2.0d0
-    ! do i=1,Nparts
-    !     call pbc(r(i,:),L)
-    ! enddo
-    ! v = v + F * 0.5d0 * dt
-    ! call ljpot(r,L,Nparts,F,Ulj,cutoff)
-    ! v = v + F * 0.5d0 * dt
-    do i=1, Nparts
-    r(i,:) = r(i,:)+v(i,:)*dt + 0.5d0*F(i,:)*dt*dt
-    call pbc(r(i,:), L)
-    v(i,:) = v(i,:)+f(i,:)*dt*0.5d0
-    call ljpot(r,L,Nparts,F,Ulj,cutoff)
-    v(i,:) = v(i,:)+f(i,:)*dt*0.5d0
+    r = r + v * dt + 0.5d0 * F * dt ** 2.0d0
+    do i=1,Nparts
+        call pbc(r(i,:),L)
     enddo
+    v = v + F * 0.5d0 * dt
+    call ljpot(r,L,Nparts,F,Ulj,cutoff)
+    v = v + F * 0.5d0 * dt
+    ! do i=1, Nparts
+    ! r(i,:) = r(i,:)+v(i,:)*dt + 0.5d0*F(i,:)*dt*dt
+    ! call pbc(r(i,:), L)
+    ! v(i,:) = v(i,:)+f(i,:)*dt*0.5d0
+    ! call ljpot(r,L,Nparts,F,Ulj,cutoff)
+    ! v(i,:) = v(i,:)+f(i,:)*dt*0.5d0
+    ! enddo
 end subroutine verlet
 
 subroutine ljpot(r,L,Nparts,F,Ulj,cutoff)
@@ -155,7 +147,7 @@ subroutine ljpot(r,L,Nparts,F,Ulj,cutoff)
                     f(i,k)=f(i,k)+(48.d0/(d**14.d0)-24d0/(d**8.d0))*dr(k)
                     f(j,k)=f(j,k)-(48.d0/(d**14.d0)-24d0/(d**8.d0))*dr(k)
                 enddo
-                Ulj = Ulj+ 4.0d0 * (1d0 / d ** 12d0 - 1d0 / d ** 6d0)+ 4.0d0 * (1d0 / cutoff ** 12d0 - 1d0 / cutoff ** 6d0)
+                Ulj = Ulj+ 4.0d0 * (1d0 / d ** 12d0 - 1d0 / d ** 6d0) - 4.0d0 * (1d0 / cutoff ** 12d0 - 1d0 / cutoff ** 6d0)
             endif
         enddo
     enddo
@@ -227,3 +219,12 @@ subroutine writeXyz(Nparts,r)
         write(unit=1,fmt=*) "C",r(i,1),r(i,2),r(i,3)
     enddo    
 end subroutine writeXyz
+
+subroutine writeVel(Nparts,vini,v)
+    implicit none
+    integer :: Nparts,i
+    double precision :: vini(Nparts,3),v(Nparts,3)
+    do i=1,Nparts
+        write(unit=3,fmt=*) (vini(i,1)**2d0+vini(i,2)**2d0+vini(i,3)**2d0)**0.5d0,(v(i,1)**2d0+v(i,2)**2d0+v(i,3)**2d0)**0.5d0
+    enddo    
+end subroutine writeVel
