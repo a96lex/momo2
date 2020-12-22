@@ -12,10 +12,11 @@ program estadistica
     equilibrium=.false.
     N=0
     N2=0
+    i=0
     do
         read (101,*, iostat=io) time,pot,kin,sum,tem
         if(tem.ge.60d0) equilibrium=.true.
-        if(equilibrium) then 
+        if(equilibrium.and.mod(i,50).eq.0) then 
             N = N + 1 
             allpot=allpot+pot
             allkin=allkin+kin
