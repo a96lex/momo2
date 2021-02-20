@@ -20,7 +20,7 @@ program estadistica
     allkin=0d0
     do
         read (101,*, iostat=io) time,pot,kin,sum,tem
-        if(tem.ge.70d0) equilibrium=.true.
+        if(N2.eq.300) equilibrium=.true.
         if(equilibrium) then 
             N = N + 1 
             allpot=allpot+pot
@@ -33,9 +33,9 @@ program estadistica
     avgpot=allpot/N
     avgkin=allkin/N
 
-    max_bLength=300
+    max_bLength=500
 
-    do bLength=2,max_bLength
+    do bLength=1,max_bLength
         Nblocks=int(dble(N)/dble(bLength))
         rewind(101)
         print*,""
@@ -43,7 +43,7 @@ program estadistica
         print*,""
         print*,""
         print*,""
-        print*,100*dble(bLength)/dble(max_bLength),"%"
+        print*,"Variances",100*dble(bLength)/dble(max_bLength),"%"
 
         varpot=0
         varkin=0

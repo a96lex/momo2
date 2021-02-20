@@ -1,92 +1,89 @@
-program final
+program final3a
     implicit none
     double precision, dimension(:,:), allocatable :: r,f,v,vini
-    double precision :: L, ro,Ulj,dt,T,kin,kinetic,cutoff,mom,momentum
-    integer :: N,i,seed,iter,Nparts
+    double precision :: L,Ulj,dt,T,kin,kinetic,cutoff,mom,momentum,pre,Tbany
+    double precision :: kintot,pottot,pretot,kbT,eps,sig,m
+    double precision, dimension(5) :: ro
+    integer :: N,i,seed,iter1,iter2,Nparts,j
+    character(len=100)::radial
+    common/props/ kbT
     
     seed = 136465
     call srand(seed)
 
-    ! Files
-    open (unit=1, file = "traj.xyz", action="write")
-    open (unit=2, file = "thermodynamics.dat", action="write")
-    open (unit=3, file = "vel.dat", action="write")
-    open (unit=4, file = "g(r)_ini.dat", action="write")
-    open (unit=5, file = "g(r)_melted.dat", action="write")
-    open (unit=7, file = "g(r)_isolated.dat", action="write")
-
-    ! Parameters
+    ! Parametres
     N=5
-    ro=0.8d0
+    ro=(/0.1d0, 0.2d0, 0.4d0, 0.6d0, 0.8d0/)
     Ulj=0d0
     dt=0.0001
-    T=1000d0
+    T=1.5d0
     Nparts=N**3
+    eps=1.837d0 !kJ/mol
+    sig= 4.1d0 !˚A
+    m = 131.29d0 !g/mol
+    kbT=1.5*eps
 
-    ! initialization
     allocate(r(Nparts,3),f(Nparts,3),v(Nparts,3),vini(Nparts,3))
-    v=0d0
-    f=0d0
-    call sccLatice(r,N,ro,L)
-    cutoff=L/2d0
-    v=0d0
-    call d_distribution(Nparts,r,L,4,100)
+    open (unit=1, file = "traj.xyz", action="write")
+    open (unit=2, file = "thermodynamics.dat", action="write")
 
-    ! Making sure all particles are inside the simulation box
-    do i=1,Nparts
-        call pbc(r(i,:),  L)
+    ! main loop
+    do j=1,5
+        write(radial,"(A,F2.1,A)") "g(r)",ro(j),".dat"
+        open (unit=3, file = radial, action="write")
+        v=0d0
+        f=0d0
+        Tbany=1000d0
+        call sccLatice(r,N,ro(j),L)
+        cutoff=L/2d0
+        v=0d0
+
+        ! Making sure all particles are inside the simulation box
+        do i=1,Nparts
+            call pbc(r(i,:),  L)
+        enddo
+
+        ! Heat bath
+        kintot=0d0
+        pottot=0d0
+        pretot=0d0
+        call ljpot(r,L,Nparts,F,Ulj,cutoff,pre,ro(j))
+
+        iter1=2000
+        iter2=10000
+        do i=1,iter2+iter1
+            print*
+            print*
+            print*
+            print*
+            print*,"Densitat nº",j,i*100/(iter1+iter2),"%"
+            call verlet(r,L,Nparts,F,Ulj,v,dt,cutoff,pre,ro(j))
+            call thermAndersen(v,0.1d0,Tbany,Nparts)
+            kin = kinetic(v,Nparts)
+            mom = momentum(v,Nparts)
+            if(i.gt.iter1) then 
+                kintot=kintot+kin
+                pottot=pottot+Ulj
+                pretot=pretot+pre
+            endif
+            T = 2d0*kin/(3d0*dble(Nparts)-3d0)
+            if(i.eq.iter1) then
+                call writeXyz(Nparts,r)
+                Tbany=1.5d0
+            endif
+        enddo
+        call d_distribution(Nparts,r,L,3,100)
+        write(2,fmt=*)ro(j)*m/sig**3,pottot*eps/iter2,kintot*eps/iter2,(pottot+kintot)*eps/iter2,pretot/iter2
     enddo
 
-    ! Melting loop!
-    call ljpot(r,L,Nparts,F,Ulj,cutoff)
-    call writeXyz(Nparts,r)
-    iter=2000
-    do i=1,iter
-        print*
-        print*
-        print*
-        print*
-        print*,"melting: ",i*100/iter,"%"
-        call verlet(r,L,Nparts,F,Ulj,v,dt,cutoff)
-        call thermAndersen(v,0.1d0,T,Nparts)
-    enddo
-    call writeXyz(Nparts,r)
-    call d_distribution(Nparts,r,L,5,100)
-    
-    ! cooling it down
-    call inizalize_velocities(v,Nparts,1.5d0)
-    vini=v
-
-    ! isolated system simulation
-    iter=50000
-    do i=1,iter
-        print*
-        print*
-        print*
-        print*
-        print*,"Isolated system: ",i*100/iter,"%"
-        call verlet(r,L,Nparts,F,Ulj,v,dt,cutoff)
-        kin = kinetic(v,Nparts)
-        mom = momentum(v,Nparts)
-        T = 2d0*kin/(3d0*dble(Nparts)-3d0)
-        if(mod(i,1).eq.0) write(2,fmt=*)i*dt,Ulj,kin,Ulj+kin,T,mom
-        !if(mod(i,50).eq.0) call writeXyz(Nparts,r)
-    enddo
-    call writeVel(Nparts,vini,v)
-    call writeXyz(Nparts,r)
-    call d_distribution(Nparts,r,L,7,100)
     close(1)
     close(2)
-    close(3)
-    close(4)
-    close(5)
-    close(7)
-end program final 
+end program final3a 
 
 subroutine inizalize_velocities(v,particles,T)
     implicit none
-    integer :: particles , p , c
-    double precision :: v(particles,3) , T , kin
+    integer :: particles,p,c
+    double precision :: v(particles,3),T,kin
     kin = 0.d0
     do p = 1 , particles
         do c = 1, 3
@@ -120,42 +117,49 @@ subroutine sccLatice(r,N,ro,L)
     enddo
 end subroutine
 
-subroutine verlet(r,L,Nparts,F,Ulj,v,dt,cutoff)
+subroutine verlet(r,L,Nparts,F,Ulj,v,dt,cutoff,pre,ro)
     implicit none
-    double precision :: r(Nparts,3),F(Nparts,3),L,Ulj,v(Nparts,3),dt,cutoff
+    ! i/o variables
+    double precision :: r(Nparts,3),F(Nparts,3),L,Ulj,v(Nparts,3),dt,cutoff,pre,ro
     integer :: Nparts,i
     r = r + v * dt + 0.5d0 * F * dt ** 2.0d0
     do i=1,Nparts
         call pbc(r(i,:),L)
     enddo
     v = v + F * 0.5d0 * dt
-    call ljpot(r,L,Nparts,F,Ulj,cutoff)
+    call ljpot(r,L,Nparts,F,Ulj,cutoff,pre,ro)
     v = v + F * 0.5d0 * dt
 end subroutine verlet
 
-subroutine ljpot(r,L,Nparts,F,Ulj,cutoff)
+subroutine ljpot(r,L,Nparts,F,Ulj,cutoff,pre,ro)
     implicit none
-    ! i/o variables
-    double precision :: r(Nparts,3),f(Nparts,3),L,Ulj
-    ! other variables
-    double precision :: dr(3),d,cutoff
-    integer :: i,j,Nparts,k
+    double precision :: r(Nparts,3),f(Nparts,3),L,Ulj,ro,kbT
+    double precision :: dr(3),d,cutoff,pre,preint
+    integer :: i,j,Nparts,k,count
+    common/props/ kbT
     F=0.d0
     Ulj=0.d0
+    count=0
+    pre=0d0
     do i=1,Nparts
         do j=i+1,Nparts
             dr=r(i,:)-r(j,:)
             call pbc(dr,L)
             d=(dr(1)**2.d0+dr(2)**2.d0+dr(3)**2.d0)**0.5d0
             if(d**2.lt.cutoff) then
+                preint=0
+                count=count+1
                 do k=1,3
+                    preint=preint+((48.d0/(d**14.d0)-24d0/(d**8.d0))*dr(k))**2
                     f(i,k)=f(i,k)+(48.d0/(d**14.d0)-24d0/(d**8.d0))*dr(k)
                     f(j,k)=f(j,k)-(48.d0/(d**14.d0)-24d0/(d**8.d0))*dr(k)
                 enddo
                 Ulj = Ulj+ 4.0d0 * (1d0 / d ** 12d0 - 1d0 / d ** 6d0) - 4.0d0 * (1d0 / cutoff ** 12d0 - 1d0 / cutoff ** 6d0)
+                pre=pre+d*preint**0.5d0
             endif
         enddo
     enddo
+    pre=pre/dble(count)+ro*kbT/(3d0*L**3d0)
 end subroutine ljpot
 
 subroutine pbc(dr,  L)
@@ -205,7 +209,7 @@ function momentum(v,Nparts) result(mom)
     implicit none
     integer :: Nparts,i,j
     double precision :: v(Nparts,3),mom
-    mom=0d0
+    mom=0
     do i=1,Nparts
         do j=1,3
             mom=mom+v(i,j)
